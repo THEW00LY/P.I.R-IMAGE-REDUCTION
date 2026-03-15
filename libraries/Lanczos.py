@@ -9,9 +9,9 @@ def _charger_lib():
     if sys.platform == "win32":
         nom = "lanczos.dll"
     elif sys.platform == "darwin":
-        nom = "malib.dylib"
+        nom = "lanczos.dylib"
     else:
-        nom = "malib.so"
+        nom = "lanczos.so"
     
     chemin = os.path.join(dossier, nom)
     return ctypes.CDLL(chemin)

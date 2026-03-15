@@ -5,9 +5,9 @@
 
 /*
  *
- *  Attention, le code doit être compilé avec MINGW64 (je ne sais pas pourquoi) et gcc
+ *  compiler une librair
  *  gcc -shared -O2 -o lanczos.dll lanczos.c <-- Windows
- *  gcc -shared -O2 -o lanczos.so lanczos.c <-- MacOS et Linux (pas testé encore)
+ *  gcc -dynamiclib -O2 -arch arm64 -arch x86_64 -o lanczos.dylib lanczos.c <-- MacOS et Linux (pas testé encore) -> compatible ARM et x86 (merci les puces M ...)
  *
 */
 
