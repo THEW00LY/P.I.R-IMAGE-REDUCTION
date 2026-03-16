@@ -11,7 +11,6 @@
  *
 */
 
-// Made by GPT pour l'instant
 // IMPORTANT : toutes les fonctions exposées à Python doivent être déclarées
 // avec cette macro pour éviter le name-mangling C++
 #ifdef _WIN32
