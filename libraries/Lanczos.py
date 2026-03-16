@@ -20,8 +20,16 @@ def _charger_lib():
             f = open(dll_path)
         except:
             print("Fichier compilation dll non reconnu, création en cours...")
-            result = subprocess.run(["gcc", "-shared", "-O2", "-o", str(dll_path), str(src_path)])
-            print("créer")
+            
+            # Problème d'environnement testé à l'iNSA
+            env = os.environ.copy()
+            #env["MSYSTEM"] = "UCRT64"
+            env["PATH"] = r"C:\msys64\ucrt64\bin;" + env["PATH"]
+
+            subprocess.run(
+                ["gcc", "-shared", "-O2", "-o", str(dll_path), str(src_path)],
+                env=env
+            )
         else:
             print("Librarie dll exist déjà ")
 
@@ -33,7 +41,6 @@ def _charger_lib():
         except:
             print("Fichier compilation dylib non reconnu, création en cours...")
             result = subprocess.run(["gcc", "-shared", "-O2", "-arch", "arm64", "-arch", "x86_64", "-o", str(dylib_path), str(src_path)])
-            print("créer")
         else:
             print("Librarie dylib exist déjà ")
     # Distrib Linux
@@ -44,7 +51,6 @@ def _charger_lib():
         except:
             print("Fichier compilation so non reconnu, création en cours...")
             result = subprocess.run(["gcc", "-shared", "-O2", "-o", str(so_path), str(src_path)])
-            print("créer")
         else:
             print("Librarie dylib exist déjà ")
 

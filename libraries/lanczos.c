@@ -35,7 +35,7 @@ float lanczos_kernel(int x, int a)
   
   if(abs(x) < a)
   {
-    return (a*sin(PI*x)*sin(PI*x/a))/(PI*PI*x*x);
+    return (a * sin(PI * x)*sin(PI * x / a))/ (PI * PI * x * x);
   }
   
   return 0.0;
@@ -46,12 +46,12 @@ float lanczos_kernel(int x, int a)
 // - Faire des pré-calculs pour les voisinage
 EXPORT int* lanczos(int *img, int old_h, int old_w, int new_h, int new_w, int a) {
 
-    int* output = malloc(new_w * 3 * new_h * 3 * sizeof(int)); // On prends en compte que chaque pixel est RGB.
+    int* output = malloc(new_w * 3 * new_h * sizeof(int)); // On prends en compte que chaque pixel est RGB.
 
     // Calcul des rapports
     // Rq : le calcul se faisant qu'une seule fois, on type en float pour avoir une bonne précision. Plus bas, on utilisera des int (arrondi inférieur)
-    float scale_w = old_w / new_w;
-    float scale_h = old_h / new_h;
+    float scale_w = (float)old_w / new_w;
+    float scale_h = (float)old_h / new_h;
 
     // On va balayer toute l'image (pour l'instant vide avec les nouvelles taille)
     for(int x = 0; x < new_h; x++)
@@ -60,11 +60,11 @@ EXPORT int* lanczos(int *img, int old_h, int old_w, int new_h, int new_w, int a)
       {
 
           // Récupérer les coordonnées associés à l'image de base
-          int old_coordinates_x = x * scale_w;
-          int old_coordinates_y = y * scale_h;
+          float old_coordinates_x = y * scale_w;
+          float old_coordinates_y = x * scale_h;
 
           int RGB_val[3] = {0, 0, 0};
-          int total_weight = 0;
+          float total_weight = 0;
 
           // On regarde désormais les voisins avec un écart de a (merci gcc pour opistimiser tout ca ^^)
           int start_x = old_coordinates_x - a + 1;
@@ -78,12 +78,12 @@ EXPORT int* lanczos(int *img, int old_h, int old_w, int new_h, int new_w, int a)
             {
 
               // Vérification des bordures
-              if(neighbor_x < 0 || neighbor_x > old_w || neighbor_y < 0 || neighbor_y > old_h) continue;
+              if(neighbor_x < 0 || neighbor_x >= old_w || neighbor_y < 0 || neighbor_y >= old_h) continue;
 
               int distance_x = old_coordinates_x - neighbor_x;
               int distance_y = old_coordinates_y - neighbor_y;
 
-              int weight = lanczos_kernel(distance_x, a) * lanczos_kernel(distance_y, a);
+              float weight = lanczos_kernel(distance_x, a) * lanczos_kernel(distance_y, a);
 
               // On récupére les constantes RGB de l'image aux coordonnées x y z
               RGB_val[0] += img[neighbor_y * old_w * 3 + neighbor_x * 3 + 0] * weight;

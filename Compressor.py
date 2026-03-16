@@ -18,7 +18,7 @@ H, W = img_array.shape[:2]
 
 new_H = 250
 new_W = 250
-a = 6
+a = 3
 
 ptr_image_reduced = Lanczos.lanczos(ptr_img, H, W, new_H, new_W, a)
 

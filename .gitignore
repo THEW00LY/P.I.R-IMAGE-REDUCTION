@@ -1,0 +1,6 @@
+__pycache__/
+.vscode/
+libraries/__pycache__/
+libraries/*.dll
+libraries/*.so
+libraries/*.dylib
