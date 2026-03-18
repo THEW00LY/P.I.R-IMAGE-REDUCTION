@@ -11,7 +11,36 @@ def sort_by(color, flat_img):
 
     return sorted(flat_img, key=lambda x: x[0][color])
 
-def median_cut(img, depht=15):
+
+def compute_range(box):
+    reds = [p[0][RED] for p in box]
+    greens = [p[0][GREEN] for p in box]
+    blues = [p[0][BLUE] for p in box]
+
+    range_r = max(reds) - min(reds)
+    range_g = max(greens) - min(greens)
+    range_b = max(blues) - min(blues)
+
+    biggest_range = max(range_r, range_g, range_b)
+
+    return biggest_range
+
+
+def compute_range_and_color(box):
+    reds = [p[0][RED] for p in box]
+    greens = [p[0][GREEN] for p in box]
+    blues = [p[0][BLUE] for p in box]
+
+    ranges = [
+        max(reds) - min(reds),
+        max(greens) - min(greens),
+        max(blues) - min(blues)
+    ]
+
+    color = np.argmax(ranges)
+    return color
+
+def median_cut(img, depht=7):
 
     h,w,c = img.shape
 
@@ -27,6 +56,7 @@ def median_cut(img, depht=15):
 
     boxes = [boxes]
 
+    """
     while depht > 0:
 
         depht -= 1
@@ -91,6 +121,29 @@ def median_cut(img, depht=15):
 
             boxes.append(box1)
             boxes.append(box2)
+    """
+
+    while len(boxes) < 2 ** depht:
+
+
+        # trier les boîtes
+        boxes.sort(key=compute_range, reverse=True)
+
+        box = boxes.pop(0)
+
+        # trouver la meilleure dimension
+        color = compute_range_and_color(box)
+
+        # tri
+        box = sort_by(color, box)
+
+        # split
+        median = len(box) // 2
+        box1 = box[:median]
+        box2 = box[median:]
+
+        boxes.append(box1)
+        boxes.append(box2)
 
     palette = []
 
@@ -123,8 +176,6 @@ def median_cut(img, depht=15):
             flat_img[pxl[1]] = color_box[0]
 
     new_img = flat_img.reshape(h, w, c)
-    print(new_img)
-    print(palette)
     return new_img
 
 # load image
