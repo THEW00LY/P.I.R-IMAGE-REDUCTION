@@ -47,7 +47,7 @@ float lanczos_kernel(int x, int a)
 // - Faire des pré-calculs pour les voisinage
 EXPORT int* lanczos(int *img, int old_h, int old_w, int new_h, int new_w, int a) {
 
-    int* output = malloc(new_w * 3 * new_h * 3 * sizeof(int)); // On prends en compte que chaque pixel est RGB.
+    int* output = malloc(new_w * new_h * 3 * sizeof(int)); // On prends en compte que chaque pixel est RGB.
 
     // Calcul des rapports
     // Rq : le calcul se faisant qu'une seule fois, on type en float pour avoir une bonne précision. Plus bas, on utilisera des int (arrondi inférieur)
@@ -55,9 +55,9 @@ EXPORT int* lanczos(int *img, int old_h, int old_w, int new_h, int new_w, int a)
     float scale_h = old_h / new_h;
 
     // On va balayer toute l'image (pour l'instant vide avec les nouvelles taille)
-    for(int x = 0; x < new_h; x++)
+    for(int y = 0; y < new_h; y++)
     {
-      for(int y = 0; y < new_w; y++)
+      for(int x = 0; x < new_w; x++)
       {
 
           // Récupérer les coordonnées associés à l'image de base
@@ -87,9 +87,9 @@ EXPORT int* lanczos(int *img, int old_h, int old_w, int new_h, int new_w, int a)
               int weight = lanczos_kernel(distance_x, a) * lanczos_kernel(distance_y, a);
 
               // On récupére les constantes RGB de l'image aux coordonnées x y z
-              RGB_val[0] += img[neighbor_y * old_w * 3 + neighbor_x * 3 + 0] * weight;
-              RGB_val[1] += img[neighbor_y * old_w * 3 + neighbor_x * 3 + 1] * weight;
-              RGB_val[2] += img[neighbor_y * old_w * 3 + neighbor_x * 3 + 2] * weight;
+              RGB_val[0] += img[neighbor_y * old_w * 3 + neighbor_y * 3 + 0] * weight;
+              RGB_val[1] += img[neighbor_y * old_w * 3 + neighbor_y * 3 + 1] * weight;
+              RGB_val[2] += img[neighbor_y * old_w * 3 + neighbor_y * 3 + 2] * weight;
 
               total_weight += weight;
 

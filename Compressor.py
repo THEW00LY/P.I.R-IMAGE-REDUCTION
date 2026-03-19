@@ -9,7 +9,7 @@ from math import sin, pi, floor
 
 import libraries.Lanczos as Lanczos
 
-myimg = Image.open(easygui.fileopenbox())
+#myimg = Image.open(easygui.fileopenbox())
 
 img_array = np.ascontiguousarray(np.array(myimg, dtype=np.int32))
 ptr_img = img_array.ctypes.data_as(ctypes.c_void_p)
