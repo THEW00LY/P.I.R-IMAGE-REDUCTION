@@ -8,8 +8,14 @@ from math import sin, pi, floor
 
 
 import libraries.Lanczos as Lanczos
+import sys
 
-#myimg = Image.open(easygui.fileopenbox())
+if len(sys.argv) > 1:
+    image_path = sys.argv[1]
+else:
+    raise ValueError("Aucun fichier fourni")
+
+myimg = Image.open(image_path)
 
 img_array = np.ascontiguousarray(np.array(myimg, dtype=np.int32))
 ptr_img = img_array.ctypes.data_as(ctypes.c_void_p)
@@ -47,8 +53,11 @@ axes[2].set_title(f"Lanczos PIL ({new_W}x{new_H})")
 axes[2].axis("off")
 
 plt.tight_layout()
-plt.show()
+#plt.show()
 
+# sauvegarde résultat
+output_path = "output.jpg"
+Image.fromarray(result_img).save(output_path)
 
 
 
