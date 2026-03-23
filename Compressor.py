@@ -7,8 +7,13 @@ import sys
 
 if len(sys.argv) > 1:
     image_path = sys.argv[1]
+
 else:
     raise ValueError("Aucun fichier fourni")
+
+new_H = int(sys.argv[2]) if len(sys.argv) > 2 else 250
+new_W = int(sys.argv[3]) if len(sys.argv) > 3 else 250
+a     = int(sys.argv[4]) if len(sys.argv) > 4 else 6
 
 myimg = Image.open(image_path).convert("RGB")  # force RGB, évite RGBA ou palette
 
@@ -16,9 +21,7 @@ myimg = Image.open(image_path).convert("RGB")  # force RGB, évite RGBA ou palet
 img_array = np.ascontiguousarray(np.array(myimg, dtype=np.int32))
 
 H, W = img_array.shape[:2]
-new_H = 250
-new_W = 250
-a = 6
+
 
 # Passer le pointeur ET garder img_array vivant
 ptr_img = img_array.ctypes.data_as(ctypes.c_void_p)
