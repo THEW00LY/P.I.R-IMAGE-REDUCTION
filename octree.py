@@ -114,11 +114,6 @@ class OctreeQuantizer:
 
     # ----- reduce: merge children of the deepest reducible node -----
     def _reduce(self):
-        """
-        Find the deepest level that still has inner (reducible) nodes.
-        Pop one, absorb all of its leaf children, and turn it into a leaf.
-        This decreases the total number of leaves.
-        """
         for level in range(self.MAX_DEPTH - 1, 0, -1):
             if not self.levels[level]:
                 continue
@@ -130,17 +125,23 @@ class OctreeQuantizer:
                 child = node.children[i]
                 if child is None:
                     continue
-                node.red_sum += child.red_sum
+                node.red_sum   += child.red_sum
                 node.green_sum += child.green_sum
-                node.blue_sum += child.blue_sum
+                node.blue_sum  += child.blue_sum
                 node.pixel_count += child.pixel_count
                 if child.is_leaf:
                     merged_leaves += 1
                 node.children[i] = None
 
             node.is_leaf = True
-            # We removed `merged_leaves` leaves and created 1 (the node itself).
-            self.leaf_count -= (merged_leaves - 1)
+
+            # Si merged_leaves == 0, on ne change rien au compteur
+            # (le nœud devient feuille sans en avoir supprimé)
+            if merged_leaves > 0:
+                self.leaf_count -= (merged_leaves - 1)
+            else:
+                self.leaf_count += 1  # ce nœud devient une nouvelle feuille
+
             return
 
     # ----- build the final palette from all remaining leaves -----

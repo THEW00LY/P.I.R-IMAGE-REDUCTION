@@ -56,7 +56,7 @@ def process_image(script_name, output, args):
 
 # --- UI Layout ---
 with ui.row().classes('w-full justify-center'):
-    ui.label("Compresseur d'Image Multi-Algorithmes").classes('text-h4')
+    ui.label("P.I.R, Image reduction algorithms").classes('text-h4')
 
 with ui.card().classes('w-full shadow-lg p-4'):
     ui.upload(

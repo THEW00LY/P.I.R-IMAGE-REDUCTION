@@ -40,6 +40,6 @@ result_array = np.ctypeslib.as_array(
 result_img = result_array.astype(np.uint8)
 
 # Sauvegarde
-output_path = "output.jpg"
+output_path = "output_lanczos.jpg"
 Image.fromarray(result_img).save(output_path)
 print("Compression terminée")
