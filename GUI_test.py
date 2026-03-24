@@ -15,10 +15,98 @@ original_w, original_h = None, None  # dimensions de l'image uploadée
 app.add_static_files('/static', BASE_DIR)
 
 def show_fullscreen(src):
-    with ui.dialog() as dialog, ui.card().classes('w-full h-full'):
-        with ui.row().classes('w-full justify-end'):
-            ui.button(icon='close', on_click=dialog.close).props('flat round')
-        ui.image(src).classes('w-full h-full object-contain')
+    dialog = ui.dialog()
+    dialog = ui.dialog().props('full-width')
+    zoom = {'value': 1}
+    position = {'x': 0, 'y': 0}
+    dragging = {'active': False}
+    
+    with dialog:
+        # popup large mais pas full screen (marge)
+        with ui.card().classes(
+            'w-[95vw] h-[95vh] bg-black flex items-center justify-center overflow-hidden m-auto'
+        ).style('max-width: none;'):
+
+            img = ui.image(src).classes(
+                'w-full h-full object-contain cursor-grab active:cursor-grabbing select-none'
+            ).style('transform-origin: center;')
+            ui.button(icon='close', on_click=dialog.close).props('round flat color=white').classes(
+                'absolute top-2 right-2 z-50 bg-white/10 hover:bg-white/30'
+            )
+            # --- LIMITES ---
+            def clamp_position():
+                # taille visible
+                max_x = (zoom['value'] - 1) * 300
+                max_y = (zoom['value'] - 1) * 200
+
+                position['x'] = max(-max_x, min(position['x'], max_x))
+                position['y'] = max(-max_y, min(position['y'], max_y))
+
+            def update_transform():
+                clamp_position()
+                img.style(
+                    f'transform: scale({zoom["value"]}) translate({position["x"]}px, {position["y"]}px)'
+                )
+
+            # --- DRAG ---
+            def on_mouse_down(e):
+                dragging['active'] = True
+                dragging['start_x'] = e.args['clientX']
+                dragging['start_y'] = e.args['clientY']
+
+            def on_mouse_move(e):
+                if not dragging['active']:
+                    return
+
+                dx = e.args['clientX'] - dragging['start_x']
+                dy = e.args['clientY'] - dragging['start_y']
+
+                # 👇 ralentit avec zoom
+                factor = 1 / zoom['value']
+                position['x'] += dx * factor
+                position['y'] += dy * factor
+
+                dragging['start_x'] = e.args['clientX']
+                dragging['start_y'] = e.args['clientY']
+
+                update_transform()
+
+            def on_mouse_up(e):
+                dragging['active'] = False
+
+            img.on('mousedown', on_mouse_down)
+            img.on('mousemove', on_mouse_move)
+            img.on('mouseup', on_mouse_up)
+            img.on('mouseleave', on_mouse_up)
+
+            # --- ZOOM ---
+            def on_wheel(e):
+                old_zoom = zoom['value']
+
+                if e.args['deltaY'] < 0:
+                    zoom['value'] *= 1.1
+                else:
+                    zoom['value'] /= 1.1
+
+                zoom['value'] = max(1, min(zoom['value'], 5))
+
+                # 👇 recentrer légèrement après zoom
+                position['x'] *= zoom['value'] / old_zoom
+                position['y'] *= zoom['value'] / old_zoom
+
+                update_transform()
+
+            img.on('wheel', on_wheel)
+
+            # --- RESET ---
+            def reset(e):
+                zoom['value'] = 1
+                position['x'] = 0
+                position['y'] = 0
+                update_transform()
+
+            img.on('dblclick', reset)
+
     dialog.open()
 
 def handle_upload(e):
@@ -81,25 +169,30 @@ def process_image(script_name, output, args):
         ui.notify(f"Erreur : {e.stderr[-200:]}", type='negative')
 
 # --- UI Layout ---
-with ui.row().classes('w-full justify-center'):
+with ui.column().classes('w-full items-center'):
+
     ui.label("P.I.R, Image reduction algorithms").classes('text-h4')
 
-with ui.card().classes('w-full shadow-lg p-4'):
-    ui.upload(
-        on_upload=handle_upload,
-        label="Cliquer pour choisir...",
-        auto_upload=True,
-        max_file_size=10_000_000
-    ).props('flat bordered').classes('w-full')
+    # Upload centré et petit
+    with ui.row().classes('w-full justify-center'):
+        ui.upload(
+            on_upload=handle_upload,
+            label="Cliquer pour choisir...",
+            auto_upload=True,
+            max_file_size=10_000_000
+        ).props('centered').classes('w-64')  # 👈 taille contrôlée
 
-with ui.row().classes('w-full justify-around mt-4'):
-    with ui.column().classes('items-center'):
-        ui.label('Aperçu Original')
-        original_preview = ui.image().classes('w-64 border')
-    with ui.column().classes('items-center'):
-        ui.label('Résultat')
-        result_display = ui.image().classes('w-64 border cursor-pointer')
-        result_display.on('click', lambda: show_fullscreen(result_display.source))
+    # Images qui prennent un max de place
+    with ui.row().classes('w-full flex-1 gap-4 mt-4'):
+
+        with ui.column().classes('flex-1 items-center'):
+            ui.label('Aperçu Original')
+            original_preview = ui.image().classes('w-full h-[70vh] object-contain border')
+
+        with ui.column().classes('flex-1 items-center'):
+            ui.label('Résultat')
+            result_display = ui.image().classes('w-full h-[70vh] object-contain border cursor-pointer')
+            result_display.on('click', lambda: show_fullscreen(result_display.source))
 
 # --- Paramètres et boutons ---
 with ui.row().classes('w-full justify-around mt-4 items-start'):
