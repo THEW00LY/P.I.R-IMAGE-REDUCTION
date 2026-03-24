@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
-
+import math as m
+import heapq
+import itertools
 
 import sys
 
@@ -12,8 +14,9 @@ else:
     raise ValueError("Aucun fichier fourni")
 
 nb_colour = int(sys.argv[2]) if len(sys.argv) > 2 else 10
+nb_colour = int(m.log2(nb_colour))
 
-image = Image.open(image_path).convert("RGB")  # force RGB, évite RGBA ou palette
+image = np.array(Image.open(image_path).convert("RGB"))  # force RGB, évite RGBA ou palette
 
 RED = 0
 GREEN = 1
@@ -54,148 +57,59 @@ def compute_range_and_color(box):
 
 def median_cut(img, nb_colour):
 
-    h,w,c = img.shape
-
-    # modifie les dimension pour avoir juste une ligne (47000 case au lieu de 188*250 cases
-
+    h, w, c = img.shape
     flat_img = img.reshape(-1, 3)
 
-    # contiendra toutes les boxes (pixel,indice)
+    def compute_range(indices):
+        pixels = flat_img[indices]
+        return np.max(pixels.max(axis=0) - pixels.min(axis=0))
 
-    boxes = []
-    for i in range(len(flat_img)):
-        boxes.append((flat_img[i],i))
+    heap = []
+    counter = itertools.count()  # 🔥 clé unique
 
-    boxes = [boxes]
+    initial_indices = np.arange(len(flat_img))
+    initial_range = compute_range(initial_indices)
 
-    """
-    while depht > 0:
+    heapq.heappush(heap, (-initial_range, next(counter), initial_indices))
 
-        depht -= 1
+    print(f"Début du traitement pour {2**nb_colour} couleurs...", flush=True)
 
+    while len(heap) < 2 ** nb_colour:
 
-        # calcul de la range pour chaques pixels
+        _, _, indices = heapq.heappop(heap)
+        pixels = flat_img[indices]
 
-        for box in boxes:
+        ranges = pixels.max(axis=0) - pixels.min(axis=0)
+        color = np.argmax(ranges)
 
-            min_red = 255
-            min_green = 255
-            min_blue = 255
+        sorted_idx = indices[np.argsort(pixels[:, color])]
 
-            max_red = 0
-            max_green = 0
-            max_blue = 0
+        median = len(sorted_idx) // 2
+        box1 = sorted_idx[:median]
+        box2 = sorted_idx[median:]
 
-
-
-            for pxl in box:
-
-
-                if pxl[0][RED] < min_red:
-                    min_red = pxl[0][RED]
-                if pxl[0][GREEN] < min_green:
-                    min_green = pxl[0][GREEN]
-                if pxl[0][BLUE] < min_blue:
-                    min_blue = pxl[0][BLUE]
-                if pxl[0][RED] > max_red:
-                    max_red = pxl[0][RED]
-                if pxl[0][GREEN] > max_green:
-                    max_green = pxl[0][GREEN]
-                if pxl[0][BLUE] > max_blue:
-                    max_blue = pxl[0][BLUE]
-
-            red_rg = max_red - min_red
-            green_rg = max_green - min_green
-            blue_rg = max_blue - min_blue
-
-            # get the max range
-
-            max_rgb = max(red_rg, green_rg, blue_rg)
-
-            # choisir la couleur avec la range la plus grande et trie de la box associé
-
-            if max_rgb == red_rg:
-                box = sort_by(RED,box)
-            elif max_rgb == green_rg:
-                box = sort_by(GREEN,box)
-            else:
-                box = sort_by(BLUE,box)
-
-        # divise en 2 la box, du coup 1 couleur en plus
-
-        for i in range(len(boxes)):
-
-            box2split = boxes.pop(0)
-
-            median = len(box2split) // 2
-
-            box1, box2 = box2split[:median],box2split[median:]
-
-            boxes.append(box1)
-            boxes.append(box2)
-    """
-
-    while len(boxes) < 2 ** nb_colour:
-
-
-        # trier les boîtes
-        boxes.sort(key=compute_range, reverse=True)
-
-        box = boxes.pop(0)
-
-        # trouver la meilleure dimension
-        color = compute_range_and_color(box)
-
-        # tri
-        box = sort_by(color, box)
-
-        # split
-        median = len(box) // 2
-        box1 = box[:median]
-        box2 = box[median:]
-
-        boxes.append(box1)
-        boxes.append(box2)
+        heapq.heappush(heap, (-compute_range(box1), next(counter), box1))
+        heapq.heappush(heap, (-compute_range(box2), next(counter), box2))
 
     palette = []
+    for _, _, indices in heap:
+        pixels = flat_img[indices]
+        mean_color = pixels.mean(axis=0).astype(np.uint8)
+        palette.append((mean_color, indices))
 
-    # déterminer les couleur de la nouvelle palette
+    for color, indices in palette:
+        flat_img[indices] = color
 
-    for box in boxes:
-
-        R = 0
-        V = 0
-        B = 0
-
-        nb_pxl = len(box)
-
-        for pxl in box:
-
-            R += int(pxl[0][RED])
-            V += int(pxl[0][GREEN])
-            B += int(pxl[0][BLUE])
-
-        final_pxl = [int(R/nb_pxl), int(V/nb_pxl), int(B/nb_pxl)]
-        palette.append((final_pxl,box))
-
-
-    #remplacer les pixels d'origine par la bonne couleur de la palette
-
-    for color_box in palette:
-
-        for pxl in color_box[1]:
-
-            flat_img[pxl[1]] = color_box[0]
-
-    new_img = flat_img.reshape(h, w, c)
-    return new_img
-
+    return flat_img.reshape(h, w, c)
 # load image
 #image = np.array(Image.open("images.png").convert("RGB"))
 #print("image dimensions : ", image.shape)    # RGB
 
 
-compressed_img = median_cut(image)
+compressed_img = median_cut(image, nb_colour)
+path = "output_mediancut.png"
 
-plt.imshow(compressed_img)
-plt.show()
+Image.fromarray(compressed_img).save(path)
+
+#plt.imshow(compressed_img)
+#plt.show()

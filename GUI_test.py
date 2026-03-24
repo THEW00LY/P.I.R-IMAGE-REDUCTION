@@ -3,14 +3,14 @@ import subprocess
 import os
 import time
 import tempfile
+from PIL import Image
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-#output différent en fonction du script
-OUTPUT_LANCZOS    = os.path.join(BASE_DIR, "output_lanczos.jpg")
-OUTPUT_OCTREE     = os.path.join(BASE_DIR, "output_octree.png")
-OUTPUT_MEDIANCUT  = os.path.join(BASE_DIR, "output_mediancut.png")
+OUTPUT_LANCZOS   = os.path.join(BASE_DIR, "output_lanczos.jpg")
+OUTPUT_OCTREE    = os.path.join(BASE_DIR, "output_octree.png")
+OUTPUT_MEDIANCUT = os.path.join(BASE_DIR, "output_mediancut.png")
 uploaded_image_path = None
+original_w, original_h = None, None  # dimensions de l'image uploadée
 
 app.add_static_files('/static', BASE_DIR)
 
@@ -22,14 +22,40 @@ def show_fullscreen(src):
     dialog.open()
 
 def handle_upload(e):
-    global uploaded_image_path
+    global uploaded_image_path, original_w, original_h
     suffix = os.path.splitext(e.file.name)[1]
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(e.file._data)
         uploaded_image_path = tmp.name
+    # Récupère les dimensions ici, quand l'image est dispo
+    img = Image.open(uploaded_image_path)
+    original_w, original_h = img.size
+    lanczos_h.value = original_h
+    lanczos_w.value = original_w
     app.add_static_files('/tmp_uploads', os.path.dirname(uploaded_image_path))
     original_preview.set_source(f'/tmp_uploads/{os.path.basename(uploaded_image_path)}')
-    ui.notify(f"Image chargée : {e.file.name}", type='positive')
+    ui.notify(f"Image chargée : {e.file.name} ({original_w}x{original_h})", type='positive')
+
+def process_lanczos():
+    if not uploaded_image_path:
+        ui.notify("Veuillez d'abord choisir une image", type='negative')
+        return
+    h = int(lanczos_h.value)
+    w = int(lanczos_w.value)
+    a = int(lanczos_a.value)
+    # Vérification que c'est bien une réduction
+    if h > original_h or w > original_w:
+        ui.notify(f"Taille entrée ({w}x{h}) supérieure à l'originale ({original_w}x{original_h})", type='negative')
+        return
+    process_image('Compressor.py', OUTPUT_LANCZOS, [h, w, a])
+
+def process_octree():
+    n = int(octree_n.value)
+    if n < 8:
+        ui.notify("Minimum 8 couleurs pour Octree", type='negative')
+        octree_n.value = 8
+        return
+    process_image('octree.py', OUTPUT_OCTREE, [n])
 
 def process_image(script_name, output, args):
     if not uploaded_image_path:
@@ -49,7 +75,7 @@ def process_image(script_name, output, args):
             result_display.set_source(f'/static/{os.path.basename(output)}?t={time.time()}')
             ui.notify("Succès ✓", type='positive')
         else:
-            ui.notify("output.jpg introuvable", type='warning')
+            ui.notify(f"{os.path.basename(output)} introuvable", type='warning')
     except subprocess.CalledProcessError as e:
         print(f"stderr : {e.stderr}")
         ui.notify(f"Erreur : {e.stderr[-200:]}", type='negative')
@@ -78,37 +104,33 @@ with ui.row().classes('w-full justify-around mt-4'):
 # --- Paramètres et boutons ---
 with ui.row().classes('w-full justify-around mt-4 items-start'):
 
-    # Lanczos / Compressor
     with ui.card().classes('p-4'):
         ui.label('Lanczos').classes('text-bold text-lg')
         lanczos_h = ui.number(label='Height', value=250, min=1, format='%d').classes('w-32')
         lanczos_w = ui.number(label='Width',  value=250, min=1, format='%d').classes('w-32')
         lanczos_a = ui.number(label='a',      value=6,   min=1, format='%d').classes('w-32')
-        ui.button('Lancer', on_click=lambda: process_image(
-            'Compressor.py', OUTPUT_LANCZOS,
-            [int(lanczos_h.value), int(lanczos_w.value), int(lanczos_a.value)]
-        ))
+        ui.button('Lancer', on_click=process_lanczos)
 
-    # Octree
     with ui.card().classes('p-4'):
         ui.label('Octree').classes('text-bold text-lg')
-        octree_n = ui.number(label='Nb couleurs', value=256, min=1, format='%d').classes('w-32')
-        ui.button('Lancer', on_click=lambda: process_image(
-            'octree.py', OUTPUT_OCTREE,
-            [int(octree_n.value)]
-        ))
+        octree_n = ui.number(label='Nb couleurs', value=256, min=8, format='%d').classes('w-32')
+        ui.button('Lancer', on_click=process_octree)
 
-    # Median Cut
     with ui.card().classes('p-4'):
         ui.label('Median Cut').classes('text-bold text-lg')
+        
+        # On stocke le sélecteur dans une variable
         mediancut_n = ui.select(
             label='Nb couleurs',
             options=[2, 4, 8, 16, 32, 64, 128, 256],
             value=64
         ).classes('w-32')
+
+        # La fonction lambda ira chercher .value au moment du clic
         ui.button('Lancer', on_click=lambda: process_image(
-            'median-cut.py', OUTPUT_MEDIANCUT,
-            [int(mediancut_n.value)]
+            'median-cut.py', 
+            OUTPUT_MEDIANCUT,
+            [int(mediancut_n.value)]  # Lecture dynamique ici
         ))
 
 ui.run()
