@@ -17,8 +17,8 @@ SIZE_ALGOS = {
         "script": "Compressor.py",
         "output": "output_lanczos.jpg",
         "params": [
-            {"label": "Width",  "default": 250, "min": 1, "key": "w"},
-            {"label": "Height", "default": 250, "min": 1, "key": "h"},
+            {"label": "Width", "default": 250, "min": 1, "key": "h"},
+            {"label": "Height",  "default": 250, "min": 1, "key": "w"},
             {"label": "a",      "default": 6,   "min": 1, "key": "a"},
         ],
     },
@@ -133,7 +133,7 @@ def process():
         algo = SIZE_ALGOS[selected_size]
         args = get_param_values(selected_size)
         if selected_size == "Lanczos":
-            w, h = args[0], args[1]
+            h, w = args[0], args[1]
             if w > state["original_w"] or h > state["original_h"]:
                 ui.notify(
                     f"Dimensions ({w}×{h}) supérieures à l'originale "
@@ -225,8 +225,8 @@ def _set_lanczos_dims(w, h):
     if "Lanczos" not in algo_widgets or len(algo_widgets["Lanczos"]) < 2:
         return
     state["updating_ratio"] = True
-    algo_widgets["Lanczos"][0].value = w
-    algo_widgets["Lanczos"][1].value = h
+    algo_widgets["Lanczos"][0].value = h
+    algo_widgets["Lanczos"][1].value = w
     state["updating_ratio"] = False
 
 
@@ -392,14 +392,14 @@ ui.add_body_html('''
 <div class="pir-sidebar"></div>
 ''')
 
-with ui.column().classes('pir-main w-full gap-0'):
+with ui.column().classes('pir-main w-full gap-0 items-center').style('align-items:center; display:flex; flex-direction:column;'):
 
-    with ui.row().classes('items-center gap-3 pt-6 pb-2'):
-        ui.html(f'<img src="/static/{LOGO_FILE}" style="height:44px;width:auto;" />')
-        ui.label("P.I.R — Image Reduction").classes('text-h4').style('margin:0;padding:0;')
+    with ui.column().classes('w-full items-center pt-6 pb-2 gap-1'):
+        ui.html(f'<img src="/static/{LOGO_FILE}" style="height:64px;width:auto;" />')
+        ui.label("P.I.R — Image Reduction").classes('text-h4').style('margin:0;padding:0;text-align:center;')
 
     # Upload
-    with ui.row().classes('w-full justify-center my-4'):
+    with ui.row().classes('justify-center my-4').style('width:100%;max-width:1100px;'):
         ui.upload(
             on_upload=handle_upload,
             label="Choisir une image",
@@ -408,7 +408,7 @@ with ui.column().classes('pir-main w-full gap-0'):
         ).props('centered').classes('w-72')
 
     # Prévisualisations
-    with ui.row().classes('w-full gap-4'):
+    with ui.row().classes('gap-4').style('width:100%;max-width:1100px;'):
         with ui.column().classes('flex-1 items-center gap-1'):
             ui.label('Original').classes('text-caption')
             # object-contain : affiche l'image entière dans la boîte, ratio respecté
@@ -427,7 +427,7 @@ with ui.column().classes('pir-main w-full gap-0'):
             result_container.on('click', lambda: show_fullscreen(state.get('last_result_src', '')))
 
     # Contrôles
-    with ui.row().classes('w-full gap-4 mt-6 items-start'):
+    with ui.row().classes('gap-4 mt-6 items-start').style('width:100%;max-width:1100px;'):
 
         # Taille
         with ui.card().classes('flex-1 p-4 gap-3'):
@@ -457,7 +457,7 @@ with ui.column().classes('pir-main w-full gap-0'):
             ui.button('Lancer', on_click=process).classes('px-10 py-3 text-base')
 
     # Palette
-    with ui.card().classes('w-full p-4 mt-4'):
+    with ui.card().classes('p-4 mt-4').style('width:100%;max-width:1100px;'):
         ui.label('Palette résultat').classes('text-bold text-lg')
         palette_container = ui.column().classes('w-full gap-0')
         with palette_container:

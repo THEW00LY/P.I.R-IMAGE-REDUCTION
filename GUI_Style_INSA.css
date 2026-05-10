@@ -93,8 +93,18 @@ body.body--dark,
    ============================================================ */
 .pir-main {
   margin-left: var(--sidebar-w);
+  margin-right: 0;
   padding: 0 2rem;
-  max-width: calc(1200px + var(--sidebar-w));
+  width: calc(100% - var(--sidebar-w));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Largeur max centrée pour tout le contenu */
+.pir-main > * {
+  width: 100%;
+  max-width: 1100px;
 }
 
 /* ============================================================
