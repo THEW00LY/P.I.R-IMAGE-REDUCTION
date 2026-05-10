@@ -1,0 +1,401 @@
+/* ============================================================
+   GUI_Style_INSA.css — P.I.R
+   Aesthetic: INSA Toulouse — red sidebar, white content,
+   Barlow Condensed + DM Mono
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
+/* ============================================================
+   VARIABLES
+   ============================================================ */
+:root {
+  --red:          #E63329;
+  --red-dark:     #c0261d;
+  --red-light:    #fdecea;
+  --sidebar-w:    72px;
+
+  --black:        #1a1917;
+  --grey-dark:    #3d3c3a;
+  --grey-mid:     #888580;
+  --grey-light:   #e8e6e2;
+  --grey-bg:      #f4f3f0;
+  --white:        #ffffff;
+
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+
+  --radius-card:  2px;
+  --shadow-sm:    0 1px 4px rgba(0,0,0,0.08);
+  --shadow-md:    0 4px 16px rgba(0,0,0,0.10);
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body,
+.q-page,
+.nicegui-content,
+body.body--dark,
+.body--dark .q-page {
+  background: var(--grey-bg) !important;
+  color: var(--black) !important;
+  font-family: var(--font-display) !important;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: var(--grey-light); }
+::-webkit-scrollbar-thumb  { background: var(--grey-mid); }
+::-webkit-scrollbar-thumb:hover { background: var(--red); }
+
+/* ============================================================
+   SIDEBAR ROUGE
+   ============================================================ */
+.pir-sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--red);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 16px;
+  z-index: 100;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.12);
+}
+
+.pir-sidebar img {
+  width: 60px !important;
+  height: auto !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Décoration — trait vertical blanc à droite de la sidebar */
+.pir-sidebar::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 10%; bottom: 10%;
+  width: 1px;
+  background: rgba(255,255,255,0.15);
+}
+
+/* ============================================================
+   CONTENU DÉCALÉ À DROITE DE LA SIDEBAR
+   ============================================================ */
+.pir-main {
+  margin-left: var(--sidebar-w);
+  padding: 0 2rem;
+  max-width: calc(1200px + var(--sidebar-w));
+}
+
+/* ============================================================
+   TITRE PRINCIPAL
+   ============================================================ */
+.text-h4 {
+  font-family: var(--font-display) !important;
+  font-size: 1.8rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  color: var(--black) !important;
+  padding: 1.5rem 0 1rem !important;
+  line-height: 1 !important;
+}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.q-card {
+  background: var(--white) !important;
+  border: 1px solid var(--grey-light) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-sm) !important;
+  overflow: visible !important;
+  position: relative;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.q-card:hover {
+  border-color: var(--grey-mid) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Barre rouge en haut */
+.q-card::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px; right: -1px;
+  height: 3px;
+  background: var(--red);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  z-index: 1;
+}
+
+/* Titres dans les cards */
+.q-card .text-bold.text-lg {
+  font-family: var(--font-display) !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: var(--black) !important;
+  margin-bottom: 0.75rem !important;
+}
+
+/* ============================================================
+   INPUTS
+   ============================================================ */
+.q-field__control {
+  background: var(--grey-bg) !important;
+  border: 1px solid var(--grey-light) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transition: border-color 0.15s;
+}
+
+.q-field__control::before,
+.q-field__control::after { display: none !important; }
+
+.q-field__control:hover   { border-color: var(--grey-mid) !important; }
+
+.q-field--focused .q-field__control {
+  border-color: var(--red) !important;
+  background: var(--white) !important;
+  box-shadow: 0 0 0 2px rgba(230,51,41,0.12) !important;
+}
+
+.q-field__label {
+  font-family: var(--font-mono) !important;
+  font-size: 0.65rem !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  color: var(--grey-mid) !important;
+}
+
+.q-field__native,
+.q-field__input {
+  font-family: var(--font-mono) !important;
+  font-size: 0.9rem !important;
+  color: var(--black) !important;
+}
+
+/* Select dropdown */
+.q-menu {
+  background: var(--white) !important;
+  border: 1px solid var(--grey-light) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.q-item {
+  font-family: var(--font-mono) !important;
+  font-size: 0.8rem !important;
+  color: var(--black) !important;
+  min-height: 36px !important;
+}
+
+.q-item:hover   { background: var(--red-light) !important; }
+.q-item--active {
+  background: var(--red-light) !important;
+  color: var(--red) !important;
+  font-weight: 500 !important;
+}
+
+/* ============================================================
+   BOUTON
+   ============================================================ */
+.q-btn {
+  font-family: var(--font-display) !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.15em !important;
+  text-transform: uppercase !important;
+  border-radius: 0 !important;
+  transition: background 0.15s, box-shadow 0.15s !important;
+}
+
+/* Spécificité maximale pour écraser Quasar */
+body .q-btn:not(.q-btn--flat):not(.q-btn--outline),
+body .q-btn--unelevated,
+body .q-btn--standard {
+  background: var(--red) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+body .q-btn:not(.q-btn--flat):not(.q-btn--outline):hover {
+  background: var(--red-dark) !important;
+  box-shadow: 0 2px 8px rgba(230,51,41,0.3) !important;
+}
+
+body .q-btn:not(.q-btn--flat):not(.q-btn--outline):active {
+  transform: scale(0.97);
+}
+
+/* Bouton close (dialog) — exception */
+.q-dialog .q-btn--round.q-btn--flat,
+body .q-btn--round.q-btn--flat {
+  background: transparent !important;
+  color: rgba(255,255,255,0.8) !important;
+  box-shadow: none !important;
+}
+
+.q-dialog .q-btn--round.q-btn--flat:hover,
+body .q-btn--round.q-btn--flat:hover {
+  background: rgba(255,255,255,0.15) !important;
+  color: white !important;
+}
+
+/* ============================================================
+   UPLOAD
+   ============================================================ */
+.q-uploader {
+  background: var(--white) !important;
+  border: 1.5px dashed var(--grey-light) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.q-uploader:hover {
+  border-color: var(--red) !important;
+  background: var(--red-light) !important;
+}
+
+.q-uploader__header {
+  background: transparent !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.7rem !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: var(--grey-mid) !important;
+}
+
+/* ============================================================
+   IMAGES
+   ============================================================ */
+.q-img,
+.q-img img,
+.nicegui-image,
+.nicegui-image img {
+  border: 1px solid var(--grey-light) !important;
+  border-radius: 0 !important;
+  background: var(--white) !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s;
+}
+
+/* Image résultat — contenu entier visible, pas de crop */
+.result-image .q-img__image {
+  background-size: contain !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Hover uniquement sur l'image résultat */
+.result-image .q-img:hover {
+  border-color: var(--red) !important;
+  box-shadow: 0 0 0 2px rgba(230,51,41,0.15) !important;
+  cursor: zoom-in !important;
+}
+
+/* Labels sections */
+.nicegui-column > label,
+.nicegui-column > .q-label,
+label.text-caption,
+.text-caption {
+  font-family: var(--font-mono) !important;
+  font-size: 0.65rem !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: var(--grey-mid) !important;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+/* ============================================================
+   PALETTE
+   ============================================================ */
+.palette-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 2px;
+  border: 1px solid rgba(0,0,0,0.08);
+  flex-shrink: 0;
+}
+
+.palette-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--grey-light);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--black);
+}
+
+.palette-row:last-child { border-bottom: none; }
+
+.palette-rgb {
+  color: var(--grey-mid);
+  font-size: 0.68rem;
+}
+
+/* ============================================================
+   DIALOG
+   ============================================================ */
+.q-dialog__backdrop {
+  background: rgba(10, 9, 8, 0.65) !important;
+  backdrop-filter: blur(3px) !important;
+}
+
+.q-dialog .q-card {
+  background: #0c0b0a !important;
+  border: 1px solid #2a2825 !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6) !important;
+}
+
+/* ============================================================
+   NOTIFICATIONS
+   ============================================================ */
+.q-notification {
+  font-family: var(--font-mono) !important;
+  font-size: 0.73rem !important;
+  border-radius: 2px !important;
+  background: var(--white) !important;
+  color: var(--black) !important;
+  border: 1px solid var(--grey-light) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.q-notification--positive { border-left: 3px solid #2d7a4f !important; }
+.q-notification--negative { border-left: 3px solid var(--red) !important; }
+.q-notification--warning  { border-left: 3px solid #b07d2a !important; }
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.q-card { animation: fadeUp 0.25s ease both; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .pir-sidebar { width: 48px; }
+  .pir-main    { margin-left: 48px; padding: 0 1rem; }
+  .text-h4     { font-size: 1.2rem !important; }
+}
