@@ -229,56 +229,75 @@ def process():
 
     current_path = state["uploaded_path"]
     final_output = None
-    color_output  = None
+    color_output = None
 
-    # ── Étape 1 : taille ──
-    selected_size = size_select.value
-    if selected_size and selected_size in SIZE_ALGOS and selected_size != '— aucun —':
-        algo = SIZE_ALGOS[selected_size]
-        args = get_param_values(selected_size)
-        if selected_size == "Lanczos":
-            h, w = args[0], args[1]
-            if w > state["original_w"] or h > state["original_h"]:
-                ui.notify(
-                    f"Dimensions ({w}×{h}) supérieures à l'originale "
-                    f"({state['original_w']}×{state['original_h']})",
-                    type='negative',
-                )
-                return
-        try:
-            out = run_script(algo["script"], current_path, algo["output"], args)
-            if out:
-                current_path = out
-                final_output = out
-            else:
-                ui.notify(f"{algo['output']} introuvable après {selected_size}", type='warning')
-                return
-        except subprocess.CalledProcessError as e:
-            ui.notify(f"Erreur {selected_size} : {e.stderr[-200:]}", type='negative')
-            return
+    # Lire le choix d'ordre (checkbox définie dans l'UI)
+    apply_color_first = False
+    if 'process_color_first' in globals() and hasattr(process_color_first, 'value'):
+        apply_color_first = bool(process_color_first.value)
 
-    # ── Étape 2 : couleurs ──
-    selected_color = color_select.value
-    if selected_color and selected_color in COLOR_ALGOS and selected_color != '— aucun —':
-        algo = COLOR_ALGOS[selected_color]
-        args = get_param_values(selected_color)
-        if selected_color == "Octree" and args[0] < 8:
-            ui.notify("Minimum 8 couleurs pour Octree", type='negative')
-            return
-        try:
-            out = run_script(algo["script"], current_path, algo["output"], args)
-            if out:
-                final_output = out
-                color_output  = out
-            else:
-                ui.notify(f"{algo['output']} introuvable après {selected_color}", type='warning')
-                return
-        except subprocess.CalledProcessError as e:
-            ui.notify(f"Erreur {selected_color} : {e.stderr[-200:]}", type='negative')
-            return
+    def run_size_step(inp_path):
+        nonlocal final_output
+        selected_size = size_select.value
+        if selected_size and selected_size in SIZE_ALGOS and selected_size != '— aucun —':
+            algo = SIZE_ALGOS[selected_size]
+            args = get_param_values(selected_size)
+            if selected_size == "Lanczos":
+                h, w = args[0], args[1]
+                if w > state["original_w"] or h > state["original_h"]:
+                    ui.notify(
+                        f"Dimensions ({w}×{h}) supérieures à l'originale "
+                        f"({state['original_w']}×{state['original_h']})",
+                        type='negative',
+                    )
+                    raise Exception('size_error')
+            try:
+                out = run_script(algo["script"], inp_path, algo["output"], args)
+                if out:
+                    final_output = out
+                    return out
+                else:
+                    ui.notify(f"{algo['output']} introuvable après {selected_size}", type='warning')
+                    raise Exception('size_error')
+            except subprocess.CalledProcessError as e:
+                ui.notify(f"Erreur {selected_size} : {e.stderr[-200:]}", type='negative')
+                raise
+        return inp_path
+
+    def run_color_step(inp_path):
+        nonlocal final_output, color_output
+        selected_color = color_select.value
+        if selected_color and selected_color in COLOR_ALGOS and selected_color != '— aucun —':
+            algo = COLOR_ALGOS[selected_color]
+            args = get_param_values(selected_color)
+            if selected_color == "Octree" and args[0] < 8:
+                ui.notify("Minimum 8 couleurs pour Octree", type='negative')
+                raise Exception('color_error')
+            try:
+                out = run_script(algo["script"], inp_path, algo["output"], args)
+                if out:
+                    final_output = out
+                    color_output = out
+                    return out
+                else:
+                    ui.notify(f"{algo['output']} introuvable après {selected_color}", type='warning')
+                    raise Exception('color_error')
+            except subprocess.CalledProcessError as e:
+                ui.notify(f"Erreur {selected_color} : {e.stderr[-200:]}", type='negative')
+                raise
+        return inp_path
+
+    try:
+        if apply_color_first:
+            current_path = run_color_step(current_path)
+            current_path = run_size_step(current_path)
+        else:
+            current_path = run_size_step(current_path)
+            current_path = run_color_step(current_path)
+    except Exception:
+        return
 
     if final_output:
-        # Récupère les dimensions réelles de l'image produite
         out_img = Image.open(final_output)
         out_w, out_h = out_img.size
         show_result(f'/output_images/{os.path.basename(final_output)}?t={time.time()}', out_w, out_h)
@@ -564,6 +583,7 @@ with ui.column().classes('pir-main w-full gap-0 items-center').style('align-item
 
         # Lancer
         with ui.card().classes('p-4 flex items-center justify-center'):
+            process_color_first = ui.checkbox("Couleur d'abord", value=False).classes('text-caption mr-4')
             ui.button('Lancer', on_click=process).classes('px-10 py-3 text-base')
 
     # Palette
