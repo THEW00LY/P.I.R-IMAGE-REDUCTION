@@ -573,4 +573,4 @@ with ui.column().classes('pir-main w-full gap-0 items-center').style('align-item
         with palette_container:
             ui.label("Lance une réduction de couleurs pour voir la palette.").classes('text-caption')
 
-ui.run()
+ui.run(host="0.0.0.0", port=8080)
